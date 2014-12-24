@@ -9,7 +9,9 @@ import java.util.List;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.app.Activity;
 import android.content.Context;
 import android.view.Menu;
@@ -25,14 +27,20 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 public class MainActivity extends Activity {
-
+	public String errMsg = null;
+	public String strData;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		if (android.os.Build.VERSION.SDK_INT > 9) {
+		    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		    StrictMode.setThreadPolicy(policy);
+		}
 		
 		if (isNetworkAvailable()) {
-			postData();
+			strData = getChargingPointsData();
 		}
 	}
 
@@ -43,11 +51,12 @@ public class MainActivity extends Activity {
 		return true;
 	}
 	
-	public void postData() {
+	public String getChargingPointsData() {
 	    // Create a new HttpClient and Post Header
 	    HttpClient httpclient = new DefaultHttpClient();
 	    //HttpPost httppost = new HttpPost("http://www.yoursite.com/script.php");
 	    HttpPost httppost = new HttpPost("http://www.mobie.pt/pt/postos-de-carregamento?p_p_id=googlemaps_WAR_mobiebusinessportlet_INSTANCE_sS4M&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=searchPoles&p_p_cacheability=cacheLevelPage&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2");
+	    String resp = null;
 
 	    try {
 	        // Add your data
@@ -58,19 +67,16 @@ public class MainActivity extends Activity {
 
 	        // Execute HTTP Post Request
 	        HttpResponse response = httpclient.execute(httppost);
-	        String resp = readHttpResponse(response);
-	    } catch (ClientProtocolException e) {
-	        // TODO Auto-generated catch block
-	    	String foo = "";
-	    	foo += "";
-	    } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	    	String foo = "";
-	    	foo += "";
+	        resp = readHttpResponse(response);
+	    } catch (ClientProtocolException ex) {
+	    	errMsg = ex.getMessage();
+	    } catch (IOException ex) {
+	    	errMsg = ex.getMessage();
 	    } catch (Exception ex) {
-	    	String foo = "";
-	    	foo += "";	    	
+	    	errMsg = ex.getMessage();
 	    }
+	    
+	    return resp;
 	}
 	
 	public String readHttpResponse(HttpResponse response) {
@@ -98,7 +104,7 @@ public class MainActivity extends Activity {
 			result = sb.toString();
 		}
         catch (Exception ex) {
-        	//
+        	errMsg = ex.getMessage();
         }
         
         return result;
@@ -114,7 +120,7 @@ public class MainActivity extends Activity {
 				networkAvailable = true;
 			}
 		} catch (Exception ex) {
-			//			
+			errMsg = ex.getMessage();
 		}
 
 		return networkAvailable;
