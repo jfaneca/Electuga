@@ -1,6 +1,9 @@
 package com.hvs.electuga;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,7 +12,6 @@ import java.util.List;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
@@ -29,6 +31,7 @@ import org.apache.http.message.BasicNameValuePair;
 public class MainActivity extends Activity {
 	public String errMsg = null;
 	public String strData;
+	public String filename = "chargingPoints.json";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +42,15 @@ public class MainActivity extends Activity {
 		    StrictMode.setThreadPolicy(policy);
 		}
 		
+		String fullFilePath = getFilesDir().getPath() + filename;
+		
+		strData = readChargingPoints(filename);
+		
 		if (isNetworkAvailable()) {
 			strData = getChargingPointsData();
+			writeChargingPoints(strData, filename);
+		} else {
+			strData = readChargingPoints(filename);
 		}
 	}
 
@@ -87,7 +97,8 @@ public class MainActivity extends Activity {
 			BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
 			if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
 			{
-				//throw new Exception(response.getStatusLine().getReasonPhrase());
+				errMsg = "HttpStatus is not 200 OK";
+				return null;
 			}
 			StringBuilder sb = new StringBuilder();
 			String s;
@@ -124,5 +135,43 @@ public class MainActivity extends Activity {
 		}
 
 		return networkAvailable;
+	}
+	
+	private Boolean writeChargingPoints(String chargingPoints, String filename) {
+		Boolean result = false;
+		
+		try {
+			FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+			fos.write(chargingPoints.getBytes());
+			fos.close();
+			result = true;
+		} catch (FileNotFoundException fnf) {
+			errMsg = "Unable to write file: file not found";
+		}
+		catch (IOException ex) {
+			errMsg = "Unable to write file: " + ex.getMessage();
+		}
+		
+		return result;
+	}
+	
+	private String readChargingPoints(String filename) {
+		String result = null;
+		try {
+			FileInputStream in = openFileInput(filename);
+			InputStreamReader inputStreamReader = new InputStreamReader(in);
+			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				sb.append(line);
+			}
+			
+		    result = sb.toString();
+		}
+		catch (IOException e) {
+			errMsg = "Error reading file";
+		}
+		return result;
 	}
 }
