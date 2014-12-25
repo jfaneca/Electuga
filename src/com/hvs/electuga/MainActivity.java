@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +35,10 @@ import org.json.JSONTokener;
 
 public class MainActivity extends Activity {
 	public String errMsg = null;
-	public String preLoadedData,postLoadedData;
+	public String savedData,pulledData;
 	public String filename = "chargingPoints.json";
-	public List<ChargingPoint> chargingPoints;
+	public List<ChargingPoint> savedChargingPoints, pulledChargingPoints;
+	public int savedChargingPointersCounter = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,12 +49,16 @@ public class MainActivity extends Activity {
 		    StrictMode.setThreadPolicy(policy);
 		}
 		
-		preLoadedData = readChargingPoints(filename);
-		chargingPoints = parseChargingPointData(preLoadedData);
+		savedData = readChargingPoints(filename);
+		savedChargingPoints = parseChargingPointData(savedData);
+		if (savedChargingPoints != null)
+			savedChargingPointersCounter = savedChargingPoints.size();
 		
 		if (isNetworkAvailable()) {
-			postLoadedData = pullChargingPointsData();
-			writeChargingPoints(postLoadedData, filename);
+			pulledData = pullChargingPointsData();
+			pulledChargingPoints = parseChargingPointData(pulledData);
+			if (pulledChargingPoints != null && pulledChargingPoints.size() >= savedChargingPointersCounter)
+				writeChargingPoints(pulledData, filename);
 		}
 	}
 
@@ -179,23 +185,61 @@ public class MainActivity extends Activity {
 	
 	private List<ChargingPoint> parseChargingPointData(String data) {
 		List<ChargingPoint> result = null;
+		ChargingPoint cp;
 		JSONObject jObj;
 		String status;
+		Object objAux;
+		JSONArray jChargingPointsArray = null;
 		
 		try {
 			JSONObject jTopStructure = (JSONObject) new JSONTokener(data).nextValue();
 			JSONObject jResponse = (JSONObject) jTopStructure.get("response");
-			JSONArray jChargingPointsArray = jResponse.getJSONArray("data");
-			if (jChargingPointsArray != null) {
+			Boolean operationSuccess = false;
+			
+			operationSuccess = jResponse.getBoolean("operationSuccess");
+
+			if (operationSuccess)
+				jChargingPointsArray = jResponse.getJSONArray("data");
+			if (operationSuccess && jChargingPointsArray != null) {
+				result = new ArrayList<ChargingPoint>();
 				for(int i = 0; i < jChargingPointsArray.length(); i++) {
+					cp = new ChargingPoint();
 					jObj = (JSONObject) jChargingPointsArray.get(i);
 					status = (String) jObj.get("status");
+					if (status == "Available")
+						cp.available = true;
+					else 
+						cp.available = false;
+					cp.street = (String) jObj.get("street");
+					cp.number = (String) jObj.get("number");
+					cp.city = (String) jObj.get("city");
+					objAux = (Object) jObj.get("longitude");
+					if (tryParseDouble(objAux))
+						cp.longitude = Double.parseDouble((String) objAux);
+					objAux = (Object) jObj.get("latitude");
+					if (tryParseDouble(objAux))
+						cp.latitude = Double.parseDouble((String) objAux);
+					
+					result.add(cp);
 				}
 			}
 	    } catch (JSONException e) {
 	        e.printStackTrace();
-	    }		
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    }
 		
+		return result;
+	}
+
+	private boolean tryParseDouble(Object obj) {
+		boolean result = false;
+		try {
+			Double d = Double.parseDouble((String) obj);
+		    result = true;
+		} catch (NumberFormatException e) {
+		    e.printStackTrace();
+		}
 		return result;
 	}
 }
