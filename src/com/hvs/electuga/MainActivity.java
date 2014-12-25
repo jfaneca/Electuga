@@ -27,11 +27,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair; 
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class MainActivity extends Activity {
 	public String errMsg = null;
-	public String strData;
+	public String preLoadedData,postLoadedData;
 	public String filename = "chargingPoints.json";
+	public List<ChargingPoint> chargingPoints;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,15 +47,12 @@ public class MainActivity extends Activity {
 		    StrictMode.setThreadPolicy(policy);
 		}
 		
-		String fullFilePath = getFilesDir().getPath() + filename;
-		
-		strData = readChargingPoints(filename);
+		preLoadedData = readChargingPoints(filename);
+		chargingPoints = parseChargingPointData(preLoadedData);
 		
 		if (isNetworkAvailable()) {
-			strData = getChargingPointsData();
-			writeChargingPoints(strData, filename);
-		} else {
-			strData = readChargingPoints(filename);
+			postLoadedData = pullChargingPointsData();
+			writeChargingPoints(postLoadedData, filename);
 		}
 	}
 
@@ -61,7 +63,7 @@ public class MainActivity extends Activity {
 		return true;
 	}
 	
-	public String getChargingPointsData() {
+	public String pullChargingPointsData() {
 	    // Create a new HttpClient and Post Header
 	    HttpClient httpclient = new DefaultHttpClient();
 	    //HttpPost httppost = new HttpPost("http://www.yoursite.com/script.php");
@@ -172,6 +174,28 @@ public class MainActivity extends Activity {
 		catch (IOException e) {
 			errMsg = "Error reading file";
 		}
+		return result;
+	}
+	
+	private List<ChargingPoint> parseChargingPointData(String data) {
+		List<ChargingPoint> result = null;
+		JSONObject jObj;
+		String status;
+		
+		try {
+			JSONObject jTopStructure = (JSONObject) new JSONTokener(data).nextValue();
+			JSONObject jResponse = (JSONObject) jTopStructure.get("response");
+			JSONArray jChargingPointsArray = jResponse.getJSONArray("data");
+			if (jChargingPointsArray != null) {
+				for(int i = 0; i < jChargingPointsArray.length(); i++) {
+					jObj = (JSONObject) jChargingPointsArray.get(i);
+					status = (String) jObj.get("status");
+				}
+			}
+	    } catch (JSONException e) {
+	        e.printStackTrace();
+	    }		
+		
 		return result;
 	}
 }
