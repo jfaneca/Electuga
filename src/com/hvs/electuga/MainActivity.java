@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -37,7 +39,7 @@ public class MainActivity extends Activity {
 	public String errMsg = null;
 	public String savedData,pulledData;
 	public String filename = "chargingPoints.json";
-	public List<ChargingPoint> savedChargingPoints, pulledChargingPoints;
+	public List<ChargingPoint> savedChargingPoints, pulledChargingPoints, currentChargingPoints;
 	public int savedChargingPointersCounter = 0;
 	
 	@Override
@@ -57,16 +59,52 @@ public class MainActivity extends Activity {
 		if (isNetworkAvailable()) {
 			pulledData = pullChargingPointsData();
 			pulledChargingPoints = parseChargingPointData(pulledData);
-			if (pulledChargingPoints != null && pulledChargingPoints.size() >= savedChargingPointersCounter)
+			if (pulledChargingPoints != null && pulledChargingPoints.size() >= savedChargingPointersCounter) {
 				writeChargingPoints(pulledData, filename);
+				currentChargingPoints = pulledChargingPoints;
+			}
+			else
+				currentChargingPoints = savedChargingPoints;
+		}
+		
+		if (currentChargingPoints != null) {
+			calcCPDistance(currentChargingPoints);
 		}
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+
+	private void calcCPDistance(List<ChargingPoint> chargingPoints) {
+		LocationManager locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		Location curLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		Location loc;
+		ChargingPoint cp;
+
+		//double latitude=0;
+		//double longitude=0;
+		//latitude = location.getLatitude();
+		//longitude = location.getLongitude();
+		
+		if (chargingPoints != null) {
+			for(int i=0;i<chargingPoints.size();i++) {
+				cp = chargingPoints.get(i);
+				loc = new Location("");
+				loc.setLatitude(cp.latitude);
+				loc.setLongitude(cp.longitude);
+				cp.distance = curLocation.distanceTo(loc);
+				if (cp.distance >= 1000) {
+					cp.distanceLabel = String.format("%.2f", cp.distance / 1000) + " kms";
+				}
+				else {
+					cp.distanceLabel = String.format("%d",(long)cp.distance) + " mts";
+				}
+			}
+		}
 	}
 	
 	public String pullChargingPointsData() {
