@@ -298,7 +298,7 @@ public class MainActivity extends ListActivity  {
 						cp.available = true;
 					else 
 						cp.available = false;
-					cp.street = (String) jObj.get("street");
+					cp.street = NormalizeStreetName((String) jObj.get("street"));
 					cp.number = (String) jObj.get("number");
 					cp.postalCode = (String) jObj.get("postalCode");
 					cp.city = (String) jObj.get("city");
@@ -317,6 +317,22 @@ public class MainActivity extends ListActivity  {
 	    } catch (Exception e) {
 	    	e.printStackTrace();
 	    }
+		
+		return result;
+	}
+	
+	private String NormalizeStreetName(String address) {
+		String result = null;
+		
+		if (address != null && address.length() > 0) {
+			result = address.replace("Avenida", "Av.");
+			result = result.replace("Praça", "Pç.");
+			result = result.replace("Rua", "R.");
+			result = result.replace("Largo", "Lg.");
+			result = result.replace("Estrada", "Estr.");
+			result = result.replace("Alameda", "Al.");
+			result = result.replace("Praçeta", "Pct.");
+		}
 		
 		return result;
 	}
