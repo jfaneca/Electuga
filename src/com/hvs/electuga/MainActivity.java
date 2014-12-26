@@ -14,12 +14,15 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient; 
@@ -81,17 +84,20 @@ public class MainActivity extends ListActivity  {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
+	
+	public void navigate2ChargingPoint(View view){
+		ChargingPoint cp;
+		cp = (ChargingPoint) view.getTag();
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" +cp.latitude+","+cp.longitude));
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
+	}
 
 	private void calcCPDistance(List<ChargingPoint> chargingPoints) {
 		LocationManager locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 		Location curLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		Location loc;
 		ChargingPoint cp;
-
-		//double latitude=0;
-		//double longitude=0;
-		//latitude = location.getLatitude();
-		//longitude = location.getLongitude();
 		
 		if (chargingPoints != null) {
 			for(int i=0;i<chargingPoints.size();i++) {
