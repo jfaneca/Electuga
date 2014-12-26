@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.location.Location;
@@ -74,7 +75,9 @@ public class MainActivity extends ListActivity  {
 			calcCPDistance(currentChargingPoints);
 		}
 
-	    ChargingPointArrayAdapter adapter = new ChargingPointArrayAdapter(this, currentChargingPoints);
+		Collections.sort(currentChargingPoints);
+	    List<ChargingPoint> filteredChargingPoints = filterChargingPoints(currentChargingPoints);
+	    ChargingPointArrayAdapter adapter = new ChargingPointArrayAdapter(this, filteredChargingPoints);
 	    setListAdapter(adapter);
 	}
 	
@@ -92,12 +95,32 @@ public class MainActivity extends ListActivity  {
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 	}
+	
+	private List<ChargingPoint> filterChargingPoints(List<ChargingPoint> chargingPoints) {
+		List<ChargingPoint> result = null;
+		int maxLimit = 50;
+		
+		if (chargingPoints != null) {
+			result = new ArrayList<ChargingPoint>(); 
+			for(int i = 0;i < chargingPoints.size();i++) {
+				result.add(chargingPoints.get(i));
+				if (i >= maxLimit) {
+					i = chargingPoints.size();
+				}
+			}
+		}
+		
+		return result;
+	}
 
 	private void calcCPDistance(List<ChargingPoint> chargingPoints) {
 		LocationManager locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 		Location curLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		Location loc;
 		ChargingPoint cp;
+		
+		if (curLocation == null)
+			curLocation = getLastKnownLocation();
 		
 		if (chargingPoints != null) {
 			for(int i=0;i<chargingPoints.size();i++) {
@@ -114,6 +137,24 @@ public class MainActivity extends ListActivity  {
 				}
 			}
 		}
+	}
+	
+	private Location getLastKnownLocation() {
+	    LocationManager mLocationManager = (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
+	    List<String> providers = mLocationManager.getProviders(true);
+	    Location bestLocation = null;
+	    for (String provider : providers) {
+	        Location l = mLocationManager.getLastKnownLocation(provider);
+	        if (l == null) {
+	            continue;
+	        }
+	        if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+	            // Found best last known location: %s", l);
+	            bestLocation = l;
+	        }
+	    }
+	    
+	    return bestLocation;
 	}
 	
 	public String pullChargingPointsData() {
