@@ -294,12 +294,13 @@ public class MainActivity extends ListActivity  {
 					cp = new ChargingPoint();
 					jObj = (JSONObject) jChargingPointsArray.get(i);
 					status = (String) jObj.get("status");
-					if (status == "Available")
+					if (status.compareToIgnoreCase("available") == 0)
 						cp.available = true;
 					else 
 						cp.available = false;
 					cp.street = (String) jObj.get("street");
 					cp.number = (String) jObj.get("number");
+					cp.postalCode = (String) jObj.get("postalCode");
 					cp.city = (String) jObj.get("city");
 					objAux = (Object) jObj.get("longitude");
 					if (tryParseDouble(objAux))
