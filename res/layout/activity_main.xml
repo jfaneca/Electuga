@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:onClick="navigate2ChargingPoint"
     tools:context=".MainActivity" >
 
     <TextView
@@ -14,7 +13,9 @@
     	android:paddingTop="2dp"
     	android:paddingBottom="2dp"
         android:text="@+id/cpLabel"
-        android:textSize="15sp" 
+        android:textSize="15sp"
+    	android:onClick="ShowDetail"    	
+		android:clickable="true" 
         >
     </TextView>
     
@@ -26,6 +27,8 @@
     	android:gravity="center"
         android:text="@+id/cpDistance"
         android:textSize="18sp"
+    	android:onClick="navigate2ChargingPoint"    	
+		android:clickable="true"
         >
     </TextView>
 </LinearLayout >

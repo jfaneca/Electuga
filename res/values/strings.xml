@@ -2,7 +2,12 @@
 <resources>
 
     <string name="app_name">Electuga</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="updatetime">Dt actualização</string>
+    <string name="numberOfSattelites">Nr. Postos</string>
+    <string name="type">Tipo</string>
+    <string name="operator">Operador</string>
+    <string name="navigate">Ir para o posto</string>
     <string name="menu_settings">Settings</string>
+    <string name="title_activity_detail">DetailActivity</string>
 
 </resources>

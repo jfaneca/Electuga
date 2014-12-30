@@ -96,6 +96,14 @@ public class MainActivity extends ListActivity  {
 		startActivity(intent);
 	}
 	
+	public void ShowDetail(View view){
+		ChargingPoint cp;
+		cp = (ChargingPoint) view.getTag();
+		Globals.detailChargingPoint = cp;
+	    Intent intent = new Intent(this, DetailActivity.class);
+	    startActivity(intent);
+	}
+	
 	private List<ChargingPoint> filterChargingPoints(List<ChargingPoint> chargingPoints) {
 		List<ChargingPoint> result = null;
 		int maxLimit = 50;
@@ -302,6 +310,10 @@ public class MainActivity extends ListActivity  {
 					cp.number = (String) jObj.get("number");
 					cp.postalCode = (String) jObj.get("postalCode");
 					cp.city = (String) jObj.get("city");
+					cp.updatetime = (String) jObj.get("updatetime");
+					cp.type = (String) jObj.get("type");
+					cp.operator = (String) jObj.get("operator");
+					cp.numberOfSattelites = (String) jObj.get("numberOfSattelites");
 					objAux = (Object) jObj.get("longitude");
 					if (tryParseDouble(objAux))
 						cp.longitude = Double.parseDouble((String) objAux);
