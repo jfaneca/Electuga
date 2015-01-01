@@ -25,6 +25,7 @@ public class ChargingPointArrayAdapter extends ArrayAdapter<ChargingPoint> {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		String cpDescr = "";
+		String distanceLabel = "";
 		ChargingPoint cp;
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	    View rowView = inflater.inflate(R.layout.activity_main, parent, false);
@@ -48,10 +49,14 @@ public class ChargingPointArrayAdapter extends ArrayAdapter<ChargingPoint> {
 	    
 	    if (cp.city != null && cp.city.length() > 0)
 	    	cpDescr += " " + cp.city;
+	    
+	    distanceLabel = cp.distanceLabel;
+	    if (cp.bearing != null && cp.bearing.length() > 0)
+	    	distanceLabel = distanceLabel + " (" + cp.bearing + ")";
 
 	    label.setTag(cp);
 	    label.setText(cpDescr);
-	    distance.setText(cp.distanceLabel);
+	    distance.setText(distanceLabel);
 	    distance.setTag(cp);
 	    
 	    if (isOdd(position))

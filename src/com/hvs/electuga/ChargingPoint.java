@@ -11,6 +11,7 @@ public class ChargingPoint implements Comparable {
 	String numberOfSattelites;
 	String type;
 	String operator;
+	String bearing;
 	
 	public Boolean getAvailable() {
 		return available; 
@@ -114,6 +115,14 @@ public class ChargingPoint implements Comparable {
 	  
 	public void setOperator(String operator) {
 		this.operator = operator;
+	}
+
+	public String getBearing() {
+		return bearing; 
+	}
+	  
+	public void setBearing(String bearing) {
+		this.bearing = bearing;
 	}
 	
 	@Override

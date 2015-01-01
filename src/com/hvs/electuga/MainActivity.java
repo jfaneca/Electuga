@@ -72,7 +72,9 @@ public class MainActivity extends ListActivity  {
 		}
 		
 		if (currentChargingPoints != null) {
-			calcCPDistance(currentChargingPoints);
+			GeoHelper geoHelper = new GeoHelper((LocationManager)getSystemService(Context.LOCATION_SERVICE));			
+			geoHelper.calcCPDistance(currentChargingPoints);
+			geoHelper.calcCPBearing(currentChargingPoints);
 		}
 
 		Collections.sort(currentChargingPoints);
@@ -119,50 +121,6 @@ public class MainActivity extends ListActivity  {
 		}
 		
 		return result;
-	}
-
-	private void calcCPDistance(List<ChargingPoint> chargingPoints) {
-		LocationManager locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		Location curLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		Location loc;
-		ChargingPoint cp;
-		
-		if (curLocation == null)
-			curLocation = getLastKnownLocation();
-		
-		if (chargingPoints != null) {
-			for(int i=0;i<chargingPoints.size();i++) {
-				cp = chargingPoints.get(i);
-				loc = new Location("");
-				loc.setLatitude(cp.latitude);
-				loc.setLongitude(cp.longitude);
-				cp.distance = curLocation.distanceTo(loc);
-				if (cp.distance >= 1000) {
-					cp.distanceLabel = String.format("%.2f", cp.distance / 1000) + " kms";
-				}
-				else {
-					cp.distanceLabel = String.format("%d",(long)cp.distance) + " mts";
-				}
-			}
-		}
-	}
-	
-	private Location getLastKnownLocation() {
-	    LocationManager mLocationManager = (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
-	    List<String> providers = mLocationManager.getProviders(true);
-	    Location bestLocation = null;
-	    for (String provider : providers) {
-	        Location l = mLocationManager.getLastKnownLocation(provider);
-	        if (l == null) {
-	            continue;
-	        }
-	        if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-	            // Found best last known location: %s", l);
-	            bestLocation = l;
-	        }
-	    }
-	    
-	    return bestLocation;
 	}
 	
 	public String pullChargingPointsData() {
